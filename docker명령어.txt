@@ -1,0 +1,88 @@
+    <!-- 컨테이너 실행 명령 -->
+    - docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
+    
+    <!-- 다음은 자주 사용하는 옵션들입니다. -->
+    옵션	설명
+    -d	detached mode 흔히 말하는 백그라운드 모드
+    -p	호스트와 컨테이너의 포트를 연결 (포워딩)
+    -v	호스트와 컨테이너의 디렉토리를 연결 (마운트)
+    -e	컨테이너 내에서 사용할 환경변수 설정
+    –name	컨테이너 이름 설정
+    –rm	프로세스 종료시 컨테이너 자동 제거
+    -it	-i와 -t를 동시에 사용한 것으로 터미널 입력을 위한 옵션
+    –link	컨테이너 연결 [컨테이너명:별칭]
+    
+    컨테이너 중지하기 (stop)
+    docker stop [OPTIONS] CONTAINER [CONTAINER...]
+    
+    컨테이너 제거하기 (rm)
+    종료된 컨테이너를 완전히 제거하는 명령어는 다음과 같습니다.
+    docker rm [OPTIONS] CONTAINER [CONTAINER...]
+<!-- ---------------------------------------------------------------- -->
+
+    이미지 목록 확인하기 (images)
+    docker images [OPTIONS] [REPOSITORY[:TAG]]
+    이미지 다운로드하기 (pull)
+    docker pull [OPTIONS] NAME[:TAG|@DIGEST]
+    이미지 삭제하기 (rmi)
+    docker rmi [OPTIONS] IMAGE [IMAGE...]
+    
+    -----------------------------------------------------------
+    DockerFile 생성 / 우분투 설치 가정
+    # 1. ubuntu 설치 (패키지 업데이트 + 만든사람 표시)
+    FROM       ubuntu:16.04
+    MAINTAINER dwhylee@gmail.com
+    RUN        apt-get -y update
+    
+    # 2. A 설치
+    RUN apt-get -y install A
+    
+    # 3. 소스 복사
+    COPY . /usr/src/app
+    
+    # 4. 패키지 설치 (실행 디렉토리 설정)
+    WORKDIR /usr/src/app
+    RUN     bundle install
+    
+    # 5. 실행 
+    CMD  ~
+    
+    DockerFile 기본 명령어
+    - FROM : 베이스 이미지를 지정합니다. 반드시 지정해야 하며 어떤 이미지도 베이스 이미지가 될 수 있습니다.
+    - MAINTAINER: Dockerfile을 관리하는 사람의 이름 또는 이메일 정보를 적습니다. 빌드에 딱히 영향을 주지는 않습니다.
+    - COPY: 파일이나 디렉토리를 이미지로 복사합니다. 일반적으로 소스를 복사하는 데 사용합니다.​ target디렉토리가 없다면 자동으로 생성합니다.
+    - ADD: COPY명령어와 매우 유사하나 몇가지 추가 기능이 있습니다. src에 파일 대신 URL을 입력할 수 있고​ src에 압축 파일을 입력하는 경우 자동으로 압축을 해제하면서 복사됩니다.
+    - RUN: 가장 많이 사용하는 구문입니다. 명령어를 그대로 실행합니다. 내부적으로 /bin/sh -c 뒤에 명령어를​ 실행하는 방식입니다.    
+    - CMD:​ 도커 컨테이너가 실행되었을 때 실행되는 명령어를 정의합니다. 빌드할 때는 실행되지 않으며 여러 개의 CMD가​ 존재할 경우 가장 마지막 CMD만 실행됩니다. 한꺼번에 여러 개의 프로그램을 실행하고 싶은 경우에는 run.sh​ 파일을 작성하여 데몬으로 실행하거나 supervisord, forego와 같은 여러 개의 프로그램을 실행하는 프로그램을​ 사용합니다.
+    - WORKDIR: RUN, CMD, ADD, COPY등이 이루어질 기본 디렉토리를 설정합니다. 각 명령어의 현재 디렉토리는 한 줄마다​ 초기화되기 때문에 RUN cd /path를 하더라도 다음 명령어에선 위치가 초기화 됩니다. 같은 디렉토리에서​ 계속 작업하기 위해서 WORKDIR을 사용합니다
+    - EXPOSE: ​ 도커 컨테이너가 실행되었을 때 요청을 기다리고 있는(Listen) 포트를 지정합니다. 여러개의 포트를 지정할 수​ 있습니다.
+    - VOLUME:컨테이너 외부에 파일시스템을 마운트 할 때 사용합니다. 반드시 지정하지 않아도 마운트 할 수 있지만,​ 기본적으로 지정하는 것이 좋습니다.
+    - ENV: 컨테이너에서 사용할 환경변수를 지정합니다. 컨테이너를 실행할 때 -e옵션을 사용하면 기존 값을 오버라이딩​ 하게 됩니다.
+
+    ----------------------------------------------------------------------------------------
+    docker compose
+    docker-compose.yml 파일생성
+
+version: '3.1'
+
+service:
+	servicename:
+		image: # optional
+		command: # optional
+		environment: # optional
+		volumes # optional
+	servicename2: # if have second service...
+    volumes: # optional
+
+    network: # optional
+
+- version: docker-compose.yml 파일의 제일 윗부분에는 파일 규격 버전을 적습니다.
+- services:​ 실행하려는 서비스들을 정의합니다. 서비스란, 앱 컨테이너나 postgres 컨테이너 각각의 묶음입니다.
+- image:​ 서비스에서 사용할 도커 이미지를 적습니다.
+- volumes:​ docker run으로 앱 컨테이너를 실행할 때 –volume 옵션을 사용하여 데이터베이스의 데이터를 로컬 컴퓨터에​ 저장했던 부분과 같습니다. 다만 docker-compose.yml에서는 상대 경로를 지정할 수 있다는 점이 다릅니다.
+- environment:​ docker run에서 -e 옵션에 적었던 내용들입니다.
+- build:​ 앱 서비스는 도커 이미지를 빌드할 일이 잦기 때문에, 특정 이미지 대신 build 옵션을 추가합니다.
+- port:​ 도커 컴포즈로 서비스를 실행하면 기본적으로 가상의 네트워크가 하나 만들어지고, 네트워크 외부의 접근이​ 막힙니다. 따라서 외부에서 접근할 수 있는 포트를 지정해주어야 합니다.
+- depends_on:​ 서비스가 하나 이상일 때, 실행 의존성을 지정할 수 있습니다.
+- links:​ docker run에서 –link 옵션에서 지정했던 내용입니다
+- command:docker run으로 앱 컨테이너를 실행하는 command 입니다.
